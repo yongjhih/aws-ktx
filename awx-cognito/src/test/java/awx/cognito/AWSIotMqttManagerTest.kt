@@ -1,4 +1,4 @@
-package awx.iot
+package awx.cognito
 
 import org.junit.Test
 

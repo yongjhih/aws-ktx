@@ -1,4 +1,4 @@
-package awx.iot
+package awx.cognito
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import kotlinx.coroutines.flow.Flow

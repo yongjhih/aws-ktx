@@ -25,7 +25,7 @@ dependencies {
 
     val awsVersion = "2.25.0"
     implementation("com.amazonaws:aws-android-sdk-core:$awsVersion")
-    implementation("com.amazonaws:aws-android-sdk-iot:$awsVersion")
+    implementation("com.amazonaws:aws-android-sdk-auth-userpools:$awsVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
 
     testImplementation("junit:junit:4.12")
