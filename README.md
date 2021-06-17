@@ -1,4 +1,17 @@
-# Aws Android SDK Kotlin function extensions
+# AWS Android SDK Kotlin function extensions
+
+## Installation
+
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    implementation 'com.github.yongjhih.aws-ktx:awx-iot:-SNAPSHOT'
+    implementation 'com.github.yongjhih.aws-ktx:awx-cognito:-SNAPSHOT'
+}
+```
 
 ## Usage
 
