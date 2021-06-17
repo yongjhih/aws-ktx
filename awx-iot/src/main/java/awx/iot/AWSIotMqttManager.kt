@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.cancellation.CancellationException
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager
+import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttSubscriptionStatusCallback
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,8 +13,13 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
+import java.lang.RuntimeException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
-fun AWSIotMqttManager.subscribeToTopic(
+@OptIn(ExperimentalCoroutinesApi::class)
+fun AWSIotMqttManager.subscribe(
     topic: String,
     qos: AWSIotMqttQos,
     onUnsubscribeException: (Throwable) -> Unit = {},
@@ -63,3 +69,33 @@ fun AWSIotMqttManager.connect(
             disconnect()
         }
     }
+
+suspend fun AWSIotMqttManager.publish(
+    data: ByteArray,
+    topic: String,
+    qos: AWSIotMqttQos,
+    userData: Any? = null,
+): MessageDeliveryStatus =
+    suspendCoroutine { cont ->
+        publishData(
+            data,
+            topic,
+            qos,
+            { status, _ ->
+                if (status == MessageDeliveryStatus.Fail) {
+                    cont.resumeWithException(RuntimeException())
+                } else {
+                    cont.resume(status)
+                }
+            },
+            userData,
+        )
+    }
+
+suspend fun AWSIotMqttManager.publish(
+    data: String,
+    topic: String,
+    qos: AWSIotMqttQos,
+    userData: Any? = null,
+): MessageDeliveryStatus =
+    publish(data.toByteArray(), topic, qos, userData)

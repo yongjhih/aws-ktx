@@ -29,10 +29,11 @@ dependencies {
     implementation("com.amazonaws:aws-android-sdk-auth-userpools:$awsVersion")
     implementation("com.amazonaws:aws-android-sdk-lambda:$awsVersion")
     implementation("com.amazonaws:aws-android-sdk-iot:$awsVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
 
     testImplementation("junit:junit:4.12")
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.10")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.10")
     testImplementation("com.google.truth:truth:1.1.3")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
 }
