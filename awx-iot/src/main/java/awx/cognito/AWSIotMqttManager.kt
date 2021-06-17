@@ -1,8 +1,6 @@
 package awx.cognito
 
 import com.amazonaws.auth.AWSCredentialsProvider
-import kotlinx.coroutines.flow.Flow
-import kotlin.coroutines.cancellation.CancellationException
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus
@@ -11,9 +9,10 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttSubscriptionStatusCallback
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.lang.RuntimeException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -34,7 +33,7 @@ fun AWSIotMqttManager.subscribe(
                     onFailure = { cancel(CancellationException(it)) },
                     onSubscribed,
                 ),
-            ) { topic, data -> sendBlocking(topic to data) }
+            ) { topic, data -> trySendBlocking(topic to data) }
             awaitCancellation()
         } finally {
             try { unsubscribeTopic(topic) }
@@ -62,7 +61,7 @@ fun AWSIotMqttManager.connect(
         try {
             connect(credentialsProvider) { status, e ->
                 if (e != null) cancel(CancellationException(e))
-                else sendBlocking(status)
+                else trySendBlocking(status)
             }
             awaitCancellation()
         } finally {
