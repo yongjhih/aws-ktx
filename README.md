@@ -108,3 +108,44 @@ After:
  }
 ```
 
+CognitoUser.getSession()
+
+Before:
+
+
+```kt
+cognitoUserPool.getUser(username).getSessionInBackground(object : AuthenticationHandler {
+    override fun onSuccess(
+        userSession: CognitoUserSession,
+        newDevice: CognitoDevice,
+    ) {
+	println(userSession.idToken?.jwtToken)
+    }
+
+    override fun getAuthenticationDetails(
+        authenticationContinuation: AuthenticationContinuation,
+        userId: String,
+    ) {
+        authenticationContinuation.apply {
+            setAuthenticationDetails(AuthenticationDetails(userId, password, null))
+            continueTask()
+        }
+    }
+
+    override fun getMFACode(continuation: MultiFactorAuthenticationContinuation) {
+    }
+
+    override fun authenticationChallenge(continuation: ChallengeContinuation?) {
+    }
+
+    override fun onFailure(exception: Exception) {
+    }
+})
+
+After:
+
+```kt
+println(cognitoUserPool.getUser(username).getSessionAsync { _, userId ->
+  AuthenticationDetails(userId, password, null)
+}.first.idToken?.jwtToken)
+```
