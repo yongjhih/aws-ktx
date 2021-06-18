@@ -32,7 +32,8 @@ mqttManager.connect(credentialsProvider) { status, _ ->
                 override fun onSuccess() {
                 }
 
-                override fun onFailure(exception: Throwable?) {
+                override fun onFailure(exception: Throwable) {
+                    mqttManager.disconnect()
                 }
             }) { _, data ->
                 println(String(data, StandardCharsets.UTF_8))
@@ -47,6 +48,19 @@ override fun onDestroyView() {
 ```
 
 After:
+
+```kt
+ viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+     // Auto discoonnect and auto unsubscribe when coroutine canceled
+     mqttManager.inConnection(credentialsProvider) {
+         mqttManager.subscribe(topic, AWSIotMqttQos.QOS0)
+             .map { String(it.second, StandardCharsets.UTF_8) }
+             .onEach { println(it) }
+     }
+ }
+```
+
+or
 
 ```kt
 viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -76,7 +90,8 @@ Before:
                  override fun onSuccess() {
                  }
  
-                 override fun onFailure(exception: Throwable?) {
+                 override fun onFailure(exception: Throwable) {
+                    mqttManager.disconnect()
                  }
              }) { topic, data ->
              println(String(data, StandardCharsets.UTF_8))
@@ -97,6 +112,20 @@ After:
 ```kt
  viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
      // Auto discoonnect and auto unsubscribe when coroutine canceled
+     mqttManager.inConnection(credentialsProvider) {
+         mqttManager.subscribe(topic, AWSIotMqttQos.QOS0)
+             .map { String(it.second, StandardCharsets.UTF_8) }
++            .take(1)
+             .onEach { println(it) }
+     }
+ }
+```
+
+or
+
+```kt
+ viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+     // Auto discoonnect and auto unsubscribe when coroutine canceled
      mqttManager.connect(credentialsProvider)
          .distinctUntilChanged()
          .filter { it == AWSIotMqttClientStatus.Connected }
@@ -107,6 +136,41 @@ After:
          .onEach { println(it) }
  }
 ```
+
+You can also get the first message concisely:
+
+
+```kt
+viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+    // Auto discoonnect and auto unsubscribe when coroutine canceled
+    val firstMessage = mqttManager.inConnection(credentialsProvider) {
+            mqttManager.subscribe(topic, AWSIotMqttQos.QOS0)
+                .map { String(it.second, StandardCharsets.UTF_8) }
+                .first()
+        }
+
+    println(firstMessage)
+}
+```
+
+or
+
+```kt
+viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+    // Auto discoonnect and auto unsubscribe when coroutine canceled
+    val firstMessage = mqttManager.connect(credentialsProvider)
+            .distinctUntilChanged()
+            .filter { it == AWSIotMqttClientStatus.Connected }
+            .take(1)
+            .flatMapConcat { mqttManager.subscribe(topic, AWSIotMqttQos.QOS0) }
+            .map { String(it.second, StandardCharsets.UTF_8) }
+            .first()
+
+   println(firstMessage)
+}
+```
+
+
 
 CognitoUser.getSession()
 
@@ -141,6 +205,7 @@ cognitoUserPool.getUser(username).getSessionInBackground(object : Authentication
     override fun onFailure(exception: Exception) {
     }
 })
+```
 
 After:
 
@@ -149,3 +214,4 @@ println(cognitoUserPool.getUser(username).getSessionAsync { _, userId ->
   AuthenticationDetails(userId, password, null)
 }.first.idToken?.jwtToken)
 ```
+
