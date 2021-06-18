@@ -18,19 +18,93 @@ dependencies {
 
 ## Usage
 
+Allow disconnect and unsubscribe when the view lifecycle eneded.
+
+Before:
+
 ```kt
-// Auto discoonnect and auto unsubscribe when coroutine canceled
-mqttManager.connect(credentialsProvider)
-    .distinctUntilChanged()
-    .filter { it == AWSIotMqttClientStatus.Connected }
-    .take(1)
-    .flatMapConcat {
-        mqttManager
-            .subscribeToTopic(
-                "topic",
-                AWSIotMqttQos.QOS0,
-            )
-            .map { String(it.second, StandardCharsets.UTF_8) }
-     }
-     .onEach { println(it) }
+mqttManager.connect(cognitoCachingCredentialsProvider) { status, _ ->
+    if (status == AWSIotMqttClientStatus.Connected) {
+        mqttManager.subscribeToTopic(
+            topic,
+            AWSIotMqttQos.QOS0,
+            object : AWSIotMqttSubscriptionStatusCallback {
+                override fun onSuccess() {
+                }
+
+                override fun onFailure(exception: Throwable?) {
+                }
+            }) { _, data ->
+                println(String(data, StandardCharsets.UTF_8))
+            }
+    }
+}
+
+override fun onDestroyView() {
+    super.onDestroyView()
+    mqttManager.disconnect()
+}
 ```
+
+After:
+
+```kt
+viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+    // Auto discoonnect and auto unsubscribe when coroutine canceled
+    mqttManager.connect(credentialsProvider)
+        .distinctUntilChanged()
+        .filter { it == AWSIotMqttClientStatus.Connected }
+        .take(1)
+        .flatMapConcat { mqttManager.subscribe("topic", AWSIotMqttQos.QOS0) }
+        .map { String(it.second, StandardCharsets.UTF_8) }
+        .onEach { println(it) }
+}
+```
+
+If we just need a first message from the topic, then unsubscribe and disconnect.
+
+
+Before:
+
+```kt
+ mqttManager.connect(cognitoCachingCredentialsProvider) { status, _ ->
+     if (status == AWSIotMqttClientStatus.Connected) {
+         mqttManager.subscribeToTopic(
+             topic,
+             AWSIotMqttQos.QOS0,
+             object : AWSIotMqttSubscriptionStatusCallback {
+                 override fun onSuccess() {
+                 }
+ 
+                 override fun onFailure(exception: Throwable?) {
+                 }
+             }) { topic, data ->
+             println(String(data, StandardCharsets.UTF_8))
++            mqttManager.unsubscribeTopic(topic)
++            mqttManager.disconnect()
+         }
+     }
+ }
+ 
+ override fun onDestroyView() {
+     super.onDestroyView()
+     mqttManager.disconnect()
+ }
+```
+
+After:
+
+```kt
+ viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+     // Auto discoonnect and auto unsubscribe when coroutine canceled
+     mqttManager.connect(credentialsProvider)
+         .distinctUntilChanged()
+         .filter { it == AWSIotMqttClientStatus.Connected }
+         .take(1)
+         .flatMapConcat { mqttManager.subscribe("topic", AWSIotMqttQos.QOS0) }
+         .map { String(it.second, StandardCharsets.UTF_8) }
++        .take(1)
+         .onEach { println(it) }
+ }
+```
+
