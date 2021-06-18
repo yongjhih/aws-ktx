@@ -12,6 +12,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -21,8 +22,8 @@ import kotlin.coroutines.suspendCoroutine
 fun AWSIotMqttManager.subscribe(
     topic: String,
     qos: AWSIotMqttQos,
-    onUnsubscribeException: (Throwable) -> Unit = {},
-    onSubscribed: () -> Unit = {},
+    onUnsubscribeException: suspend (Throwable) -> Unit = {},
+    onSubscribed: suspend () -> Unit = {},
 ): Flow<Pair<String, ByteArray>> =
     callbackFlow {
         try {
@@ -31,7 +32,7 @@ fun AWSIotMqttManager.subscribe(
                 qos,
                 mqttSubscriptionStatusCallback(
                     onFailure = { cancel(CancellationException(it)) },
-                    onSubscribed,
+                    onSuccess = { launch { onSubscribed() } },
                 ),
             ) { topic, data -> trySendBlocking(topic to data) }
             awaitCancellation()
