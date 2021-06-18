@@ -6,13 +6,9 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttManager
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttSubscriptionStatusCallback
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -22,6 +18,7 @@ import kotlin.coroutines.suspendCoroutine
 fun AWSIotMqttManager.subscribe(
     topic: String,
     qos: AWSIotMqttQos,
+    autoUnsubscribe: Boolean = true,
     onUnsubscribeException: suspend (Throwable) -> Unit = {},
     onSubscribed: suspend () -> Unit = {},
 ): Flow<Pair<String, ByteArray>> =
@@ -37,8 +34,10 @@ fun AWSIotMqttManager.subscribe(
             ) { topic, data -> trySendBlocking(topic to data) }
             awaitCancellation()
         } finally {
-            try { unsubscribeTopic(topic) }
-            catch (e: Exception) { onUnsubscribeException(e) }
+            if (autoUnsubscribe) {
+                try { unsubscribeTopic(topic) }
+                catch (e: Exception) { onUnsubscribeException(e) }
+            }
         }
     }
 
@@ -57,6 +56,7 @@ fun mqttSubscriptionStatusCallback(
 @OptIn(ExperimentalCoroutinesApi::class)
 fun AWSIotMqttManager.connect(
     credentialsProvider: AWSCredentialsProvider,
+    autoDisconnect: Boolean = true,
 ): Flow<AWSIotMqttClientStatus> =
     callbackFlow {
         try {
@@ -66,9 +66,30 @@ fun AWSIotMqttManager.connect(
             }
             awaitCancellation()
         } finally {
-            disconnect()
+            if (autoDisconnect) disconnect()
         }
     }
+
+/**
+ * Allow auto-disconnect
+ */
+@OptIn(FlowPreview::class)
+suspend fun <R> AWSIotMqttManager.inConnection(
+    credentialsProvider: AWSCredentialsProvider,
+    onConnectionChanged: suspend (AWSIotMqttClientStatus) -> Unit = {},
+    block: suspend AWSIotMqttManager.() -> R,
+): R? =
+    connect(credentialsProvider)
+        .onEach(onConnectionChanged)
+        .distinctUntilChanged()
+        .flatMapConcat {
+            if (it == AWSIotMqttClientStatus.ConnectionLost) emptyFlow()
+            else flowOf(it)
+        }
+        .filter { it == AWSIotMqttClientStatus.Connected }
+        .take(1)
+        .map { block() }
+        .firstOrNull()
 
 suspend fun AWSIotMqttManager.publish(
     data: ByteArray,
