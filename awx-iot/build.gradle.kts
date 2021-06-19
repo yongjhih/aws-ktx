@@ -28,12 +28,16 @@ android {
 dependencies {
     // Align versions of all Kotlin components
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.4.10"))
-    implementation(Dependency.kotlinStdLibJdk8)
+    implementation(Dependencies.kotlinStdLibJdk8)
 
-    implementation(Dependency.awsAndroidCore)
-    implementation(Dependency.awsAndroidIot)
-    implementation(Dependency.kotlinxCoroutinesCore)
+    implementation(Dependencies.awsAndroidCore)
+    implementation(Dependencies.awsAndroidIot)
+    implementation(Dependencies.kotlinxCoroutinesCore)
 
-    testImplementation(Dependency.junit)
-    testImplementation(Dependency.truth)
+    testImplementation(Dependencies.junit)
+    testImplementation(Dependencies.truth)
+    testImplementation(Dependencies.mockitoKotlin)
+    testImplementation(Dependencies.kotlinxCoroutinesCoreTest)
+    testImplementation(Dependencies.robolectric)
+
 }

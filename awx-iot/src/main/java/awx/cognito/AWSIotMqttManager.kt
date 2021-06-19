@@ -7,8 +7,10 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback.Mess
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttSubscriptionStatusCallback
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.*
+import java.security.KeyStore
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -61,6 +63,23 @@ fun AWSIotMqttManager.connect(
     callbackFlow {
         try {
             connect(credentialsProvider) { status, e ->
+                if (e != null) cancel(CancellationException(e))
+                else trySendBlocking(status)
+            }
+            awaitCancellation()
+        } finally {
+            if (autoDisconnect) disconnect()
+        }
+    }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun AWSIotMqttManager.connect(
+    keyStore: KeyStore,
+    autoDisconnect: Boolean = true,
+): Flow<AWSIotMqttClientStatus> =
+    callbackFlow {
+        try {
+            connect(keyStore) { status, e ->
                 if (e != null) cancel(CancellationException(e))
                 else trySendBlocking(status)
             }
