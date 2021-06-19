@@ -1,9 +1,6 @@
 plugins {
     id("com.android.library")
-}
-
-repositories {
-    mavenCentral()
+    id("kotlin-android")
 }
 
 android {
@@ -14,23 +11,29 @@ android {
         targetSdkVersion(30)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+        //consumerProguardFiles("consumer-rules.pro")
     }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
+
 }
 
 dependencies {
     // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.5.10"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.10")
+    //implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.4.10"))
+    implementation(Dependency.kotlinStdLibJdk8)
 
-    val awsVersion = "2.25.0"
-    implementation("com.amazonaws:aws-android-sdk-core:$awsVersion")
-    implementation("com.amazonaws:aws-android-sdk-iot:$awsVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
+    implementation(Dependency.awsAndroidCore)
+    implementation(Dependency.awsAndroidIot)
+    implementation(Dependency.kotlinxCoroutinesCore)
 
-    testImplementation("junit:junit:4.12")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.10")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.10")
-    testImplementation("com.google.truth:truth:1.1.3")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0")
+    testImplementation(Dependency.junit)
+    testImplementation(Dependency.truth)
 }
