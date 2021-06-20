@@ -38,4 +38,9 @@ dependencies {
     testImplementation(Dependencies.truth)
     testImplementation(Dependencies.mockitoKotlin)
     testImplementation(Dependencies.kotlinxCoroutinesCoreTest)
+    //testImplementation(Dependencies.awsAndroidTestUtils)
+    //testImplementation("org.apache.httpcomponents:httpcore:4.4.5")
+    testImplementation(Dependencies.robolectric)
+    testImplementation(Dependencies.androidxTestCore)
+    testImplementation(Dependencies.androidxTestCoreKtx)
 }

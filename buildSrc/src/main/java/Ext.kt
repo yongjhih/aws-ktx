@@ -7,6 +7,7 @@ object Version {
     const val truth = "1.1.3"
     const val mockitoKotlin = "3.2.0"
     const val robolectric = "4.5.1"
+    const val androidxCore = "1.3.0"
 }
 
 object Dependencies {
@@ -16,6 +17,9 @@ object Dependencies {
     const val awsAndroidCore = "com.amazonaws:aws-android-sdk-core:${Version.aws}"
     const val awsAndroidAuth = "com.amazonaws:aws-android-sdk-auth-userpools:${Version.aws}"
     const val awsAndroidIot = "com.amazonaws:aws-android-sdk-iot:${Version.aws}"
+    const val awsAndroidTestUtils = "com.amazonaws:aws-java-sdk-test-utils:1.12.9"
+    const val androidxTestCore = "androidx.test:core:${Version.androidxCore}"
+    const val androidxTestCoreKtx = "androidx.test:core-ktx:${Version.androidxCore}"
     const val junit = "junit:junit:${Version.junit}"
     const val truth = "com.google.truth:truth:${Version.truth}"
     const val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin:${Version.mockitoKotlin}"

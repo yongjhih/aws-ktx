@@ -7,7 +7,6 @@ import com.amazonaws.mobileconnectors.iot.AWSIotMqttMessageDeliveryCallback.Mess
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttQos
 import com.amazonaws.mobileconnectors.iot.AWSIotMqttSubscriptionStatusCallback
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.*
 import java.security.KeyStore
