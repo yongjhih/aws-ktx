@@ -5,7 +5,7 @@ import com.amazonaws.regions.Region
 import com.amazonaws.regions.Regions
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.runBlockingTest
 import org.eclipse.paho.client.mqttv3.*
 import org.junit.After
@@ -65,20 +65,29 @@ class AWSIotMqttManagerTest {
             Region.getRegion(Regions.US_EAST_1), TEST_ENDPOINT_PREFIX).apply {
             setMqttClient(mockClient)
         }
-        val testKeystore = AWSIotKeystoreHelper.getIotKeystore(CERT_ID, KEYSTORE_PATH,
-        KEYSTORE_NAME, KEYSTORE_PASSWORD)
+        val testKeystore = AWSIotKeystoreHelper.getIotKeystore(
+            CERT_ID,
+            KEYSTORE_PATH,
+            KEYSTORE_NAME,
+            KEYSTORE_PASSWORD,
+        )
 
+        val statuses: MutableList<AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus> = mutableListOf()
         val scope = async {
-            testClient.connect(testKeystore).collect {
-                println(it)
-            }
+            testClient.connect(testKeystore)
+                .onEach { statuses.add(it) }
+                .first { it == AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Connected }
         }
         mockClient.mockConnectSuccess()
-        scope.cancelAndJoin()
+        scope.await()
 
         assertThat(mockClient.connectCalls).isEqualTo(1)
         assertThat(mockClient.mostRecentOptions?.isCleanSession).isTrue()
         assertThat(mockClient.mostRecentOptions?.keepAliveInterval).isEqualTo(300)
+        assertThat(statuses).isEqualTo(listOf(
+            AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Connecting,
+            AWSIotMqttClientStatusCallback.AWSIotMqttClientStatus.Connected,
+        ))
     }
 
     @Before
