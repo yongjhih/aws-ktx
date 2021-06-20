@@ -1,11 +1,16 @@
 package com.amazonaws.mobileconnectors.iot
 
 import awx.cognito.connect
+import awx.cognito.inConnection
+import awx.cognito.publish
 import com.amazonaws.regions.Region
 import com.amazonaws.regions.Regions
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runBlockingTest
 import org.eclipse.paho.client.mqttv3.*
 import org.junit.After
@@ -25,7 +30,7 @@ import java.security.KeyPair
 class AWSIotMqttManagerTest {
 
     // This certificate is an invalid (to AWS IoT) certificate for unit testing only.
-    private val TestCert = """
+    private val testCert = """
         -----BEGIN CERTIFICATE-----
         MIIDlTCCAn2gAwIBAgIVAKuR4L6GajQRv1DzXlUFigMoiwzsMA0GCSqGSIb3DQEB
         CwUAME0xSzBJBgNVBAsMQkFtYXpvbiBXZWIgU2VydmljZXMgTz1BbWF6b24uY29t
@@ -50,13 +55,14 @@ class AWSIotMqttManagerTest {
         -----END CERTIFICATE-----
         """.trimIndent()
 
-    private val CERT_ID = "unittest"
-    private val KEYSTORE_PATH = "./"
-    private val KEYSTORE_NAME = "unit_test_keystore"
-    private val KEYSTORE_PASSWORD = "test"
-    private val TEST_ENDPOINT_PREFIX = "ABCDEFG"
-    private val TEST_ENDPOINT = "${TEST_ENDPOINT_PREFIX}.iot.us-east-1.amazonaws.com"
-
+    companion object {
+        const val CERT_ID = "unittest"
+        const val KEYSTORE_PATH = "./"
+        const val KEYSTORE_NAME = "unit_test_keystore"
+        const val KEYSTORE_PASSWORD = "test"
+        const val TEST_ENDPOINT_PREFIX = "ABCDEFG"
+        const val TEST_ENDPOINT = "${TEST_ENDPOINT_PREFIX}.iot.us-east-1.amazonaws.com"
+    }
 
     @Test
     fun testConnect(): Unit = runBlockingTest {
@@ -92,19 +98,15 @@ class AWSIotMqttManagerTest {
 
     @Before
     fun setUp() {
-        //Dispatchers.setMain(mainThreadSurrogate)
-
         val testKP: KeyPair = AWSIotKeystoreHelper.generatePrivateAndPublicKeys()
         AWSIotKeystoreHelper.saveCertificateAndPrivateKey(
-            CERT_ID, TestCert, testKP.private,
+            CERT_ID, testCert, testKP.private,
             KEYSTORE_PATH, KEYSTORE_NAME, KEYSTORE_PASSWORD
         )
     }
 
     @After
     fun tearDown() {
-        //Dispatchers.resetMain()
-        //mainThreadSurrogate.close()
         val keystoreFile = File(KEYSTORE_PATH, KEYSTORE_NAME)
         if (keystoreFile.exists()) {
             keystoreFile.delete()
@@ -112,16 +114,31 @@ class AWSIotMqttManagerTest {
     }
 
     @Test
-    fun testSomeUI(): Unit = runBlockingTest {
-        /*
-        val testClient = AWSIotMqttManager(
-            "test-client",
-            Region.getRegion(Regions.US_EAST_1), TEST_ENDPOINT_PREFIX
+    fun testPublish(): Unit = runBlockingTest {
+        val mockClient = MockMqttClient()
+        val testClient = AWSIotMqttManager("test-client",
+            Region.getRegion(Regions.US_EAST_1), TEST_ENDPOINT_PREFIX).apply {
+            setMqttClient(mockClient)
+        }
+        val testKeystore = AWSIotKeystoreHelper.getIotKeystore(
+            CERT_ID,
+            KEYSTORE_PATH,
+            KEYSTORE_NAME,
+            KEYSTORE_PASSWORD,
         )
-        print("Total Execution Time: ${measureTimeMillis {
-            assertThat(true).isTrue()
-        }}")
-        */
+        val scope = async {
+            val status = testClient.inConnection(keyStore = testKeystore) {
+                publish("Hello, world!", "#", AWSIotMqttQos.QOS0)
+            }
+            assertThat(status).isEqualTo(AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus.Success)
+        }
+        mockClient.mockConnectSuccess()
+        mockClient.mockPublishSuccess("#", MqttMessage("Hello, world!".toByteArray()))
+        scope.await()
+
+        assertThat(mockClient.publishCalls).isEqualTo(1)
+        assertThat(mockClient.mostRecentPublishTopic).isEqualTo("#")
+        assertThat(mockClient.mostRecentPublishPayload?.decodeToString()).isEqualTo("Hello, world!")
     }
 }
 
@@ -160,8 +177,6 @@ class MockMqttClient : MqttAsyncClient(
         userContext: Any?,
         callback: IMqttActionListener?,
     ): IMqttToken {
-        println("MockMqttClient: connect")
-        println("MockMqttClient: callback: ${callback}")
         if (throwsExceptionOnConnect && connectException != null) {
             throw connectException!!
         }
@@ -185,7 +200,7 @@ class MockMqttClient : MqttAsyncClient(
         topic: String,
         payload: ByteArray,
         qos: Int,
-        retained: Boolean
+        retained: Boolean,
     ): IMqttDeliveryToken {
         if (throwsExceptionOnPublish) {
             throw MqttException(MqttException.REASON_CODE_CLIENT_EXCEPTION.toInt())
@@ -200,8 +215,12 @@ class MockMqttClient : MqttAsyncClient(
 
     @Throws(MqttException::class)
     override fun publish(
-        topic: String, payload: ByteArray, qos: Int, retained: Boolean,
-        userContext: Any, callback: IMqttActionListener
+        topic: String,
+        payload: ByteArray,
+        qos: Int,
+        retained: Boolean,
+        userContext: Any?,
+        callback: IMqttActionListener?,
     ): IMqttDeliveryToken {
         if (throwsExceptionOnPublish) {
             throw MqttException(MqttException.REASON_CODE_CLIENT_EXCEPTION.toInt())
@@ -258,6 +277,19 @@ class MockMqttClient : MqttAsyncClient(
     fun mockConnectSuccess() {
         mockConnectionStatusCallback!!.onSuccess(testToken)
         isConnected = true
+    }
+
+    fun mockPublishSuccess(topic: String = "",
+                           message: MqttMessage? = null,
+                           token: IMqttDeliveryToken? = null,
+                           userData: Any? = null,
+    ) {
+        mockCallback!!.messageArrived(topic, message)
+        mockCallback!!.deliveryComplete(token)
+        val userContext = mostRecentPublishUserContext as? PublishMessageUserData
+        userContext?.userCallback?.statusChanged(
+            AWSIotMqttMessageDeliveryCallback.MessageDeliveryStatus.Success,
+            userData)
     }
 
     fun mockConnectFail() {

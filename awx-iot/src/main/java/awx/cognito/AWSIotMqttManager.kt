@@ -110,6 +110,27 @@ suspend fun <R> AWSIotMqttManager.inConnection(
         .map { block() }
         .firstOrNull()
 
+/**
+ * Allow auto-disconnect
+ */
+@OptIn(FlowPreview::class)
+suspend fun <R> AWSIotMqttManager.inConnection(
+    keyStore: KeyStore,
+    onConnectionChanged: suspend (AWSIotMqttClientStatus) -> Unit = {},
+    block: suspend AWSIotMqttManager.() -> R,
+): R? =
+    connect(keyStore)
+        .onEach(onConnectionChanged)
+        .distinctUntilChanged()
+        .flatMapConcat {
+            if (it == AWSIotMqttClientStatus.ConnectionLost) emptyFlow()
+            else flowOf(it)
+        }
+        .filter { it == AWSIotMqttClientStatus.Connected }
+        .take(1)
+        .map { block() }
+        .firstOrNull()
+
 suspend fun AWSIotMqttManager.publish(
     data: ByteArray,
     topic: String,
