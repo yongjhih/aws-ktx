@@ -225,7 +225,9 @@ interface GitHubLambda {
     @LambdaFunction(functionName = "user")
     fun user(request: Map<String, Any>): User
 }
+```
 
+```kt
 lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaMoshiBinder()))
 
 @JsonClass(generateAdapter = false)
