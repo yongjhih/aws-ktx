@@ -228,23 +228,36 @@ interface GitHubLambda {
 ```
 
 ```kt
-lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaMoshiBinder()))
-
 @JsonClass(generateAdapter = false)
 data class User(
     val username: String,
 )
 ```
 
+```kt
+val lambdaInvokerFactory = LambdaInvokerFactory.builder()
+            .context(context)
+            .region(REGION)
+            .credentialsProvider(credentialsProvider)
+            .build()
+```
+
+```kt
+
+val gitHubLambda = lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaMoshiBinder()))
+val user = gitHubLambda.user(mapOf { ... })
+```
+
 ## LambdaKotlinxSerializationBinder
 
 ```kt
-lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaKotlinxSerializationBinder()))
-
-
 @Serializable
 data class User(
     val username: String,
 )
 ```
 
+```kt
+val gitHubLambda = lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaKotlinxSerializationBinder()))
+val user = gitHubLambda.user(mapOf { ... })
+```
