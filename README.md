@@ -220,10 +220,17 @@ println(cognitoUserPool.getUser(username).getSessionAsync { _, userId ->
 
 ### Lambda
 
+Before
+
+```kt
+val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build(GitHubLambda::class.java)
+```
+
+After:
 ```kt
 val gitHubLambda = lambdaInvokerFactory.build<GitHubLambda>()
+// or
 val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build()
-val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build(LambdaMoshiBinder())
 ```
 
 ### LambdaMoshiBinder
