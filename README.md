@@ -13,6 +13,7 @@ repositories {
 dependencies {
     implementation 'com.github.yongjhih.aws-ktx:awx-iot:-SNAPSHOT'
     implementation 'com.github.yongjhih.aws-ktx:awx-cognito:-SNAPSHOT'
+    implementation 'com.github.yongjhih.aws-ktx:awx-lambda:-SNAPSHOT'
     implementation 'com.github.yongjhih.aws-ktx:awx-lambda-moshi:-SNAPSHOT'
     implementation 'com.github.yongjhih.aws-ktx:awx-lambda-kotlinx-serialization:-SNAPSHOT'
 }
