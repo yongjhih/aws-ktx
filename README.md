@@ -217,6 +217,13 @@ println(cognitoUserPool.getUser(username).getSessionAsync { _, userId ->
 }.first.idToken?.jwtToken)
 ```
 
+## Lambda
+
+```kt
+val gitHubLambda = lambdaInvokerFactory.build<GitHubLambda>()
+val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build()
+val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build(LambdaMoshiBinder())
+```
 
 ## LambdaMoshiBinder
 
@@ -244,7 +251,7 @@ val lambdaInvokerFactory = LambdaInvokerFactory.builder()
 
 ```kt
 
-val gitHubLambda = lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaMoshiBinder()))
+val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build(LambdaMoshiBinder())
 val user = gitHubLambda.user(mapOf { ... })
 ```
 
@@ -258,6 +265,6 @@ data class User(
 ```
 
 ```kt
-val gitHubLambda = lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaKotlinxSerializationBinder()))
+val gitHubLambda: GitHubLambda = lambdaInvokerFactory.build(LambdaKotlinxSerializationBinder())
 val user = gitHubLambda.user(mapOf { ... })
 ```
