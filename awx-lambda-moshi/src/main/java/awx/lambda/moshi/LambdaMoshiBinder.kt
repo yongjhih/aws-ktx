@@ -10,9 +10,17 @@ class LambdaMoshiBinder(private val moshi: Moshi = Moshi.Builder()
     .addLast(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
     .build()) : LambdaDataBinder {
     override fun <T> deserialize(content: ByteArray?, clazz: Class<T>): T? =
-        content?.inputStream()?.source()?.buffer()?.jsonReader()?.use { reader ->
+        content?.inputStream()?.source()?.buffer()?.jsonReader()?.apply {
+            isLenient = true
+        }?.use { reader ->
             moshi.adapter(clazz).fromJson(reader)
         }
 
-    override fun serialize(obj: Any): ByteArray? = null
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun serialize(obj: Any?): ByteArray? =
+        try {
+            moshi.adapter<Any>().toJsonValue(obj).toString().toByteArray()
+        } catch (e: Exception) {
+            null
+        }
 }

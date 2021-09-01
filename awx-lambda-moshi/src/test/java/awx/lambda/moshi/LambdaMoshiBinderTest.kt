@@ -1,6 +1,7 @@
 package awx.lambda.moshi
 
 import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.squareup.moshi.JsonClass
 import org.junit.Test
 
@@ -15,7 +16,7 @@ class LambdaMoshiBinderTest {
     @Test
     fun test() {
         val binder = LambdaMoshiBinder()
-        Truth.assertThat(
+        assertThat(
             binder.deserialize("""
             {
                 "username": "username0",
@@ -31,13 +32,12 @@ class LambdaMoshiBinderTest {
             )
         )
 
-        // Doesn't support
-        //LoggedInUser(
-        //    username = "username0",
-        //    federatedIdentity = "federatedIdentity0",
-        //    externalProviderId = "externalProviderId0",
-        //).let { user ->
-        //    assertThat(binder.deserialize(binder.serialize(user), LoggedInUser::class.java)).isEqualTo(user)
-        //}
+        LoggedInUser(
+            username = "username0",
+            federatedIdentity = "federatedIdentity0",
+            externalProviderId = "externalProviderId0",
+        ).let { user ->
+            assertThat(binder.deserialize(binder.serialize(user), LoggedInUser::class.java)).isEqualTo(user)
+        }
     }
 }

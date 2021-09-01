@@ -37,6 +37,7 @@ class LambdaKotlinxSerializationBinderTest {
         //    federatedIdentity = "federatedIdentity0",
         //    externalProviderId = "externalProviderId0",
         //).let { user ->
+        ////    println(binder.serialize(user)?.toString(Charsets.UTF_8))
         //    assertThat(binder.deserialize(binder.serialize(user), LoggedInUser::class.java)).isEqualTo(user)
         //}
     }

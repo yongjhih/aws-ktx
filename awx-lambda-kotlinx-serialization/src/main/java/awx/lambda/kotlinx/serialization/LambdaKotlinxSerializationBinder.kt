@@ -9,7 +9,7 @@ class LambdaKotlinxSerializationBinder(private val stringFormat: StringFormat = 
     override fun <T> deserialize(content: ByteArray?, clazz: Class<T>): T? =
         content?.toString(Charsets.UTF_8)?.let { stringFormat.decodeFromString(it, clazz) }
 
-    override fun serialize(obj: Any): ByteArray =
+    override fun serialize(obj: Any?): ByteArray? =
         stringFormat.encodeToString(obj).toByteArray()
 }
 
