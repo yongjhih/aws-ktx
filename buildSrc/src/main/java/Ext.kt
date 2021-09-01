@@ -8,9 +8,10 @@ object Version {
     const val mockitoKotlin = "3.2.0"
     const val robolectric = "4.5.1"
     const val androidxCore = "1.3.0"
+    const val kotlinxSerialization = "1.2.2"
 }
 
-object Dependencies {
+object Depends {
     const val kotlinxCoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.kotlinxCoroutines}"
     const val kotlinxCoroutinesCoreTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.kotlinxCoroutines}"
     const val kotlinStdLibJdk8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Version.kotlin}"

@@ -28,19 +28,19 @@ android {
 dependencies {
     // Align versions of all Kotlin components
     //implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.4.10"))
-    implementation(Dependencies.kotlinStdLibJdk8)
+    implementation(Depends.kotlinStdLibJdk8)
 
-    implementation(Dependencies.awsAndroidCore)
-    implementation(Dependencies.awsAndroidAuth)
-    implementation(Dependencies.kotlinxCoroutinesCore)
+    implementation(Depends.awsAndroidCore)
+    implementation(Depends.awsAndroidAuth)
+    implementation(Depends.kotlinxCoroutinesCore)
 
-    testImplementation(Dependencies.junit)
-    testImplementation(Dependencies.truth)
-    testImplementation(Dependencies.mockitoKotlin)
-    testImplementation(Dependencies.kotlinxCoroutinesCoreTest)
+    testImplementation(Depends.junit)
+    testImplementation(Depends.truth)
+    testImplementation(Depends.mockitoKotlin)
+    testImplementation(Depends.kotlinxCoroutinesCoreTest)
     //testImplementation(Dependencies.awsAndroidTestUtils)
     //testImplementation("org.apache.httpcomponents:httpcore:4.4.5")
-    testImplementation(Dependencies.robolectric)
-    testImplementation(Dependencies.androidxTestCore)
-    testImplementation(Dependencies.androidxTestCoreKtx)
+    testImplementation(Depends.robolectric)
+    testImplementation(Depends.androidxTestCore)
+    testImplementation(Depends.androidxTestCoreKtx)
 }
