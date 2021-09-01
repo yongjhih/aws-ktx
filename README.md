@@ -13,6 +13,8 @@ repositories {
 dependencies {
     implementation 'com.github.yongjhih.aws-ktx:awx-iot:-SNAPSHOT'
     implementation 'com.github.yongjhih.aws-ktx:awx-cognito:-SNAPSHOT'
+    implementation 'com.github.yongjhih.aws-ktx:awx-lambda-moshi:-SNAPSHOT'
+    implementation 'com.github.yongjhih.aws-ktx:awx-lambda-kotlinx-serialization:-SNAPSHOT'
 }
 ```
 
@@ -213,5 +215,34 @@ After:
 println(cognitoUserPool.getUser(username).getSessionAsync { _, userId ->
   AuthenticationDetails(userId, password, null)
 }.first.idToken?.jwtToken)
+```
+
+
+## LambdaMoshiBinder
+
+```kt
+interface GitHubLambda {
+    @LambdaFunction(functionName = "user")
+    fun user(request: Map<String, Any>): User
+}
+
+lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaMoshiBinder()))
+
+@JsonClass(generateAdapter = false)
+data class User(
+    val username: String,
+)
+```
+
+## LambdaKotlinxSerializationBinder
+
+```kt
+lambdaInvokerFactory.build(GitHubLambda::class.java, LambdaKotlinxSerializationBinder()))
+
+
+@Serializable
+data class User(
+    val username: String,
+)
 ```
 
