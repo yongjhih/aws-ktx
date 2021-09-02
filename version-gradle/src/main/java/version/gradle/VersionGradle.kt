@@ -6,10 +6,6 @@ import org.gradle.api.Project
 class VersionGradle : Plugin<Project> {
     override fun apply(project: Project) {
     }
-
-    companion object {
-
-    }
 }
 
 object Version {

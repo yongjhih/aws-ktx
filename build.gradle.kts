@@ -11,7 +11,7 @@ buildscript {
 }
 
 plugins {
-    id("version.gradle")
+    id("version.gradle").apply(false)
 }
 
 allprojects {
@@ -19,10 +19,6 @@ allprojects {
         google()
         mavenCentral()
     }
-}
-
-subprojects {
-    apply(plugin = "version.gradle")
 }
 
 tasks {
