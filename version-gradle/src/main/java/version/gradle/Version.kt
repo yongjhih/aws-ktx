@@ -1,3 +1,17 @@
+package version.gradle
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+
+class VersionGradle : Plugin<Project> {
+    override fun apply(project: Project) {
+    }
+
+    companion object {
+
+    }
+}
+
 object Version {
     const val androidGradle = "4.1.3"
     const val kotlin = "1.5.0"
@@ -12,8 +26,10 @@ object Version {
 }
 
 object Depends {
-    const val kotlinxCoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.kotlinxCoroutines}"
-    const val kotlinxCoroutinesCoreTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.kotlinxCoroutines}"
+    const val kotlinxCoroutinesCore =
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Version.kotlinxCoroutines}"
+    const val kotlinxCoroutinesCoreTest =
+        "org.jetbrains.kotlinx:kotlinx-coroutines-test:${Version.kotlinxCoroutines}"
     const val kotlinStdLibJdk8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Version.kotlin}"
     const val awsAndroidCore = "com.amazonaws:aws-android-sdk-core:${Version.aws}"
     const val awsAndroidAuth = "com.amazonaws:aws-android-sdk-auth-userpools:${Version.aws}"

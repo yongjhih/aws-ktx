@@ -5,9 +5,13 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:${Version.androidGradle}")
+        classpath("com.android.tools.build:gradle:4.1.3")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10")
     }
+}
+
+plugins {
+    id("version.gradle")
 }
 
 allprojects {
@@ -15,6 +19,10 @@ allprojects {
         google()
         mavenCentral()
     }
+}
+
+subprojects {
+    apply(plugin = "version.gradle")
 }
 
 tasks {
